@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <title>Admin Panel — Jony Comunity Boshqaruv Tizimi</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ruby: {
+              600: '#E11D48',
+              700: '#BE123C',
+            },
+            gold: {
+              400: '#FBBF24',
+              500: '#F59E0B',
+              600: '#D97706',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#06070B] text-[#F9FAFB] min-h-screen pb-20">
+
+  <!-- AUTH GUARD OVERLAY (AGAR PAROL TERILMAGAN BO'LSA KO'RSATILADI) -->
+  <div id="authGate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+    <div class="glass-panel max-w-sm w-full rounded-3xl p-8 text-center border border-amber-500/40 shadow-2xl bg-[#0E0F17]">
+      <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-2xl mx-auto mb-4">
+        🔒
+      </div>
+      <h2 class="text-xl font-heading font-extrabold text-white mb-2">
+        Admin Avtorizatsiya
+      </h2>
+      <p class="text-xs text-gray-400 mb-6">
+        Boshqaruv paneliga kirish uchun maxfiy kodni kiriting:
+      </p>
+
+      <form onsubmit="checkAdminGate(event)" class="space-y-4">
+        <input 
+          type="password" 
+          id="gatePassInput" 
+          required 
+          placeholder="Kodni kiriting (Standart: 88888888)" 
+          class="w-full px-4 py-3 rounded-xl bg-black/80 border border-gray-700 text-white text-center font-mono tracking-widest text-lg focus:border-amber-400 focus:outline-none"
+        >
+        <div id="gateError" class="text-xs text-rose-500 font-semibold hidden">
+          ❌ Noto'g'ri kod kiritildi!
+        </div>
+        <div class="flex gap-2">
+          <a href="index.html" class="w-1/2 py-2.5 rounded-xl bg-gray-800 text-xs font-semibold text-gray-300 hover:bg-gray-700 block text-center leading-relaxed">
+            Saytga qaytish
+          </a>
+          <button type="submit" class="w-1/2 btn-gold py-2.5 text-xs font-bold uppercase tracking-wider">
+            Kirish &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN ASOSIY QISMI (FAQAT PAROL TO'G'RI BO'LGANDA ISHLAYDI) -->
+  <div id="adminMainContent" class="hidden">
+    
+    <!-- Admin Header -->
+    <header class="glass-nav sticky top-0 z-40 py-4 px-6 border-b border-gray-800 bg-[#0A0C14]/90 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-700 to-amber-500 flex items-center justify-center font-bold text-lg shadow-lg">
+            ⚙️
+          </div>
+          <div>
+            <h1 class="text-lg font-heading font-bold text-white flex items-center gap-2">
+              <span id="headerBrandTitle">Jony Comunity</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">Boshqaruv Paneli</span>
+            </h1>
+            <p class="text-xs text-gray-400">Sayt dizayni, matnlari va xavfsizlik boshqaruvi</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-xs font-semibold text-amber-400 border border-amber-500/30 flex items-center gap-2 transition-all">
+            <span>← Saytni ko'rish</span>
+          </a>
+          <button onclick="adminLogout()" class="px-3 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-400 text-xs font-semibold border border-rose-800/40 transition-colors">
+            Chiqish (Logout)
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-12">
+
+      <!-- BILDIRISHNOMA (TOAST) -->
+      <div id="saveToast" class="fixed top-24 right-6 z-50 hidden bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-semibold border border-emerald-400">
+        <span>✓</span> <span id="toastMsg">O'zgarishlar muvaffaqiyatli saqlandi!</span>
+      </div>
+
+      <!-- 1-BO'LIM: BREND NOMI VA XAVFSIZLIK SOZLAMALARI -->
+      <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-gray-800 space-y-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold uppercase tracking-wider mb-2">
+            🛡️ Brend Nomi & Xavfsizlik Kodingiz
+          </div>
+          <h2 class="text-2xl font-heading font-extrabold text-white">
+            Sayt Nomi va Kirish Parolini O'zgartirish
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+          <!-- Brend Nomi (Logotip o'rnidagi matn) -->
+          <div class="p-5 rounded-2xl bg-[#0A0C14] border border-gray-800 space-y-3">
+            <label class="block text-xs font-semibold text-gray-300">
+              Sayt Brend Nomi (Logotip o'rnida turuvchi matn):
+            </label>
+            <input 
+              type="text" 
+              id="input_brand_name" 
+              placeholder="Masalan: Jony Comunity" 
+              class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-amber-400 focus:outline-none"
+            >
+            <p class="text-[11px] text-gray-400">
+              Ushbu matn saytning Header, Footer va Hero qismida rasm-logosiz toza matn holida ko'rinadi.
+            </p>
+          </div>
+
+          <!-- Kirish Paroli -->
+          <div class="p-5 rounded-2xl bg-[#0A0C14] border border-gray-800 space-y-3">
+            <label class="block text-xs font-semibold text-gray-300">
+              Admin Panel Kirish Kodi (PIN / Parol):
+            </label>
+            <div class="flex gap-2">
+              <input 
+                type="text" 
+                id="input_admin_pin" 
+                placeholder="Yangi kod (Standart: 88888888)" 
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white font-mono text-sm focus:border-amber-400 focus:outline-none"
+              >
+              <button type="button" onclick="saveAdminPin()" class="btn-gold px-4 py-2 text-xs font-bold whitespace-nowrap">
+                Kodni Saqlash
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-400">
+              Kodni o'zgartirgandan so'ng, sayt pastidagi tugma orqali faqat shu yangi kod bilan kiriladi.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2-BO'LIM: SAYT DIZAYNLARI (4 XIL RANGDA) -->
+      <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-gray-800 space-y-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold uppercase tracking-wider mb-2">
+            🎨 Sayt Dizaynlari (4 Xil Rang)
+          </div>
+          <h2 class="text-2xl font-heading font-extrabold text-white">
+            Saytning ranglar mavzusini tanlang
+          </h2>
+          <p class="text-sm text-gray-400">
+            Quyidagi dizaynlardan birini tanlang. Tanlangan rang darhol asosiy saytda qo'llaniladi.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          
+          <!-- Theme 1: Ruby & Gold -->
+          <div class="theme-card p-5 rounded-2xl border-2 border-rose-500 bg-[#0E0F17] hover:scale-[1.02] transition-all cursor-pointer relative" onclick="selectTheme('theme-ruby-gold')">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">1. Qizil & Oltin</span>
+              <span class="theme-active-badge text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold">FAOL</span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-6 h-6 rounded-full bg-[#E11D48] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#F59E0B] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06070B] border border-gray-700"></span>
+            </div>
+            <div class="text-sm font-bold text-white mb-1">Ruby & Warm Gold</div>
+            <p class="text-xs text-gray-400">Premium, boy va nufuzli ko'rinish beruvchi klassik uslub.</p>
+            <button class="mt-4 w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors">
+              Tanlangan
+            </button>
+          </div>
+
+          <!-- Theme 2: Emerald & Obsidian -->
+          <div class="theme-card p-5 rounded-2xl border border-gray-800 bg-[#0E0F17] hover:border-emerald-500 hover:scale-[1.02] transition-all cursor-pointer relative" onclick="selectTheme('theme-emerald')">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">2. Zumrad & Qora</span>
+              <span class="theme-active-badge hidden text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">FAOL</span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-6 h-6 rounded-full bg-[#10B981] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06B6D4] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06070B] border border-gray-700"></span>
+            </div>
+            <div class="text-sm font-bold text-white mb-1">Emerald Mint</div>
+            <p class="text-xs text-gray-400">FinTech, daromad va o'sish ramzi bo'lgan zamonaviy uslub.</p>
+            <button class="mt-4 w-full py-2 rounded-xl bg-gray-800 hover:bg-emerald-600 text-white text-xs font-bold transition-colors">
+              Tanlash
+            </button>
+          </div>
+
+          <!-- Theme 3: Electric Violet & Cyan -->
+          <div class="theme-card p-5 rounded-2xl border border-gray-800 bg-[#0E0F17] hover:border-indigo-500 hover:scale-[1.02] transition-all cursor-pointer relative" onclick="selectTheme('theme-violet-cyan')">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">3. Binafsha & Moviy</span>
+              <span class="theme-active-badge hidden text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-bold">FAOL</span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-6 h-6 rounded-full bg-[#6366F1] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06B6D4] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06070B] border border-gray-700"></span>
+            </div>
+            <div class="text-sm font-bold text-white mb-1">Electric Cyberpunk</div>
+            <p class="text-xs text-gray-400">High-Tech SaaS va IT-startaplar uslubidagi neon dizayn.</p>
+            <button class="mt-4 w-full py-2 rounded-xl bg-gray-800 hover:bg-indigo-600 text-white text-xs font-bold transition-colors">
+              Tanlash
+            </button>
+          </div>
+
+          <!-- Theme 4: Midnight Gold & Champagne -->
+          <div class="theme-card p-5 rounded-2xl border border-gray-800 bg-[#0E0F17] hover:border-amber-500 hover:scale-[1.02] transition-all cursor-pointer relative" onclick="selectTheme('theme-luxury-gold')">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">4. Klassik Oltin</span>
+              <span class="theme-active-badge hidden text-[10px] bg-amber-600 text-white px-2 py-0.5 rounded-full font-bold">FAOL</span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-6 h-6 rounded-full bg-[#F59E0B] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#FBBF24] border border-white/20"></span>
+              <span class="w-6 h-6 rounded-full bg-[#06070B] border border-gray-700"></span>
+            </div>
+            <div class="text-sm font-bold text-white mb-1">Luxury Gold</div>
+            <p class="text-xs text-gray-400">Sof oltin va qora monoxrom hashamatli elita uslubi.</p>
+            <button class="mt-4 w-full py-2 rounded-xl bg-gray-800 hover:bg-amber-600 text-white text-xs font-bold transition-colors">
+              Tanlash
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3-BO'LIM: SAYTDAGI MATNLARNI TAHRIRLASH -->
+      <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-gray-800 space-y-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold uppercase tracking-wider mb-2">
+              ✍️ Sayt Matnlarini Tahrirlash
+            </div>
+            <h2 class="text-2xl font-heading font-extrabold text-white">
+              Sayt bloklaridagi matnlarni o'zgartiring
+            </h2>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="resetToDefaults()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition-all">
+              🔄 Standartga qaytarish
+            </button>
+            <button type="button" onclick="saveAllTexts()" class="btn-primary py-2 px-5 text-xs uppercase tracking-wider">
+              💾 Barchasini Saqlash
+            </button>
+          </div>
+        </div>
+
+        <form id="textsForm" class="space-y-6 pt-4 border-t border-gray-800">
+          
+          <!-- Hero Section -->
+          <div class="p-5 rounded-2xl bg-[#0A0C14] border border-gray-800/80 space-y-4">
+            <h3 class="text-base font-bold text-amber-400">1. Hero (Bosh qism) Matnlari:</h3>
+            
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1.5">Asosiy Sarlavha (H1):</label>
+              <input type="text" id="input_hero_title" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1.5">Qo'shimcha Tavsif (Subtitle):</label>
+              <textarea id="input_hero_subtitle" rows="2" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">Bog'lanish Telefon Raqami:</label>
+                <input type="text" id="input_phone_number" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none font-mono">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">Harakat Tugmasi Matni:</label>
+                <input type="text" id="input_btn_admin" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Services Section -->
+          <div class="p-5 rounded-2xl bg-[#0A0C14] border border-gray-800/80 space-y-4">
+            <h3 class="text-base font-bold text-amber-400">2. Xizmatlar Bo'limi Matnlari:</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">1-Xizmat Sarlavhasi:</label>
+                <input type="text" id="input_srv1_title" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">1-Xizmat Tavsifi:</label>
+                <input type="text" id="input_srv1_desc" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">2-Xizmat Sarlavhasi:</label>
+                <input type="text" id="input_srv2_title" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">2-Xizmat Tavsifi:</label>
+                <input type="text" id="input_srv2_desc" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">3-Xizmat Sarlavhasi:</label>
+                <input type="text" id="input_srv3_title" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-gray-300 mb-1.5">3-Xizmat Tavsifi:</label>
+                <input type="text" id="input_srv3_desc" class="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Section -->
+          <div class="p-5 rounded-2xl bg-[#0A0C14] border border-gray-800/80 space-y-4">
+            <h3 class="text-base font-bold text-amber-400">3. Bog'lanish Bo'limi Matnlari:</h3>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1.5">Forma Sarlavhasi:</label>
+              <input type="text" id="input_contact_title" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-300 mb-1.5">Forma Qo'shimcha Matni:</label>
+              <input type="text" id="input_contact_subtitle" class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-sm focus:border-rose-500 focus:outline-none">
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="button" onclick="saveAllTexts()" class="btn-primary py-3 px-8 text-sm font-bold uppercase tracking-wider">
+              💾 Barcha Matnlarni Saqlash
+            </button>
+          </div>
+
+        </form>
+      </section>
+
+      <!-- 4-BO'LIM: KELIB TUSHGAN ARIZALAR -->
+      <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-gray-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold uppercase tracking-wider mb-2">
+              📋 Arizalar Bazasi
+            </div>
+            <h2 class="text-2xl font-heading font-extrabold text-white">Sayt orqali tushgan arizalar</h2>
+          </div>
+          <button onclick="clearLeads()" class="text-xs text-rose-400 hover:text-rose-300 underline">
+            Arizalarni tozalash
+          </button>
+        </div>
+
+        <div class="overflow-x-auto pt-4">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-gray-800 text-gray-400">
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">Mijoz Ismi</th>
+                <th class="py-3 px-4">Telefon</th>
+                <th class="py-3 px-4">Tanlagan Xizmatlar</th>
+                <th class="py-3 px-4">Izoh</th>
+                <th class="py-3 px-4">Vaqt</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody" class="divide-y divide-gray-800/60 text-gray-300">
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Standart matnlar
+    const DEFAULT_TEXTS = {
+      brand_name: "Jony Comunity",
+      hero_title: "Kichik va o'rta biznesingiz uchun mijoz oqimini ko'paytiramiz: Sayt, Bot va Ilovalar!",
+      hero_subtitle: "Oddiy saytlar emas, balki yuqori daromad keltiruvchi va sotuvlarni 2-3 baravargacha oshiruvchi eksklyuziv raqamli tizimlarni kalit ostida ishlab chiqamiz.",
+      phone_number: "+998 (94) 413 22 83",
+      btn_admin: "Admin bilan bog'lanish",
+      srv1_title: "Biznes uchun Maxsus Veb-saytlar",
+      srv1_desc: "Har bir pikseli mijozni sotib olishga undaydigan zamonaviy Landing Page, korporativ saytlar va onlayn-do'konlar. SEO optimizatsiyalangan, ultra-tez yuklanadi va barcha telefonlarda ideal ko'rinadi.",
+      srv2_title: "Telegram Botlar & Web-Botlar",
+      srv2_desc: "O'zbekistonda eng ommabop bo'lgan Telegram ichida to'liq veb-do'kon oching. Mijoz ilova yuklab o'tirmay, bot ichidayoq mahsulotni tanlaydi, Click/Payme orqali to'laydi va buyurtma avtomatik tushadi.",
+      srv3_title: "Mobil Ilovalar (App) va Avtomatlashtirish",
+      srv3_desc: "Mijozlaringiz cho'ntagidagi shaxsiy savdo nuqtangiz. Qayta sotuvlarga undovchi sadoqat tizimlari, push-xabarnomalar va biznes jarayonlarini to'liq avtomatlashtirish imkoniyati.",
+      contact_title: "Biznesingizda mijoz oqimini ko'paytirishga tayyormisiz?",
+      contact_subtitle: "Raqamingizni qoldiring. Mutaxassisimiz qisqa vaqt ichida bog'lanib, loyihangiz bo'yicha aniq ma'lumot va taklif beradi."
+    };
+
+    // 0. AUTH GATE TEKSHIRUVI
+    function checkAdminSession() {
+      const isAuth = sessionStorage.getItem('jony_admin_auth');
+      const authGate = document.getElementById('authGate');
+      const adminMainContent = document.getElementById('adminMainContent');
+
+      if (isAuth === 'true') {
+        authGate.classList.add('hidden');
+        adminMainContent.classList.remove('hidden');
+        loadAllAdminData();
+      } else {
+        authGate.classList.remove('hidden');
+        adminMainContent.classList.add('hidden');
+      }
+    }
+
+    function checkAdminGate(e) {
+      e.preventDefault();
+      const enteredPass = document.getElementById('gatePassInput').value.trim();
+      const correctPass = localStorage.getItem('jony_admin_pin') || '88888888';
+
+      if (enteredPass === correctPass) {
+        sessionStorage.setItem('jony_admin_auth', 'true');
+        checkAdminSession();
+      } else {
+        const errorEl = document.getElementById('gateError');
+        errorEl.classList.remove('hidden');
+        setTimeout(() => errorEl.classList.add('hidden'), 3000);
+      }
+    }
+
+    function adminLogout() {
+      sessionStorage.removeItem('jony_admin_auth');
+      window.location.href = 'index.html';
+    }
+
+    // 1. PIN-kodni o'zgartirish
+    function saveAdminPin() {
+      const newPin = document.getElementById('input_admin_pin').value.trim();
+      if (!newPin || newPin.length < 4) {
+        alert("Iltimos, kamida 4 xonali kod kiriting!");
+        return;
+      }
+      localStorage.setItem('jony_admin_pin', newPin);
+      showToast("Yangi admin kodi muvaffaqiyatli saqlandi!");
+    }
+
+    // 2. Rang mavzusini tanlash
+    function selectTheme(themeClass) {
+      localStorage.setItem('jony_site_theme', themeClass);
+      updateThemeCards(themeClass);
+      showToast("Sayt dizayni muvaffaqiyatli o'zgartirildi!");
+    }
+
+    function updateThemeCards(currentTheme) {
+      const themes = ['theme-ruby-gold', 'theme-emerald', 'theme-violet-cyan', 'theme-luxury-gold'];
+      const cards = document.querySelectorAll('.theme-card');
+
+      cards.forEach((card, idx) => {
+        const theme = themes[idx];
+        const badge = card.querySelector('.theme-active-badge');
+        const btn = card.querySelector('button');
+
+        if (theme === currentTheme || (!currentTheme && theme === 'theme-ruby-gold')) {
+          card.classList.add('border-2', 'border-rose-500');
+          card.classList.remove('border-gray-800');
+          if (badge) badge.classList.remove('hidden');
+          if (btn) btn.textContent = "Tanlangan";
+        } else {
+          card.classList.remove('border-2', 'border-rose-500');
+          card.classList.add('border-gray-800');
+          if (badge) badge.classList.add('hidden');
+          if (btn) btn.textContent = "Tanlash";
+        }
+      });
+    }
+
+    // 3. Matnlarni yuklash
+    function loadAllAdminData() {
+      const saved = JSON.parse(localStorage.getItem('jony_site_texts') || '{}');
+      const texts = { ...DEFAULT_TEXTS, ...saved };
+
+      for (const key in texts) {
+        const input = document.getElementById('input_' + key);
+        if (input) {
+          input.value = texts[key];
+        }
+      }
+
+      // PIN input placeholder
+      const currentPin = localStorage.getItem('jony_admin_pin') || '88888888';
+      document.getElementById('input_admin_pin').value = currentPin;
+
+      // Header title
+      document.getElementById('headerBrandTitle').textContent = texts.brand_name || 'Jony Comunity';
+
+      const currentTheme = localStorage.getItem('jony_site_theme') || 'theme-ruby-gold';
+      updateThemeCards(currentTheme);
+      loadLeads();
+    }
+
+    // 4. Barcha matnlarni saqlash
+    function saveAllTexts() {
+      const texts = {};
+      for (const key in DEFAULT_TEXTS) {
+        const input = document.getElementById('input_' + key);
+        if (input) {
+          texts[key] = input.value.trim();
+        }
+      }
+
+      localStorage.setItem('jony_site_texts', JSON.stringify(texts));
+      document.getElementById('headerBrandTitle').textContent = texts.brand_name || 'Jony Comunity';
+      showToast("Barcha matnlar saqlandi! Saytda bir zumda yangilandi.");
+    }
+
+    function resetToDefaults() {
+      if (confirm("Rostdan ham barcha matnlarni standart holatga qaytarmoqchimisiz?")) {
+        localStorage.removeItem('jony_site_texts');
+        loadAllAdminData();
+        showToast("Matnlar standart holatga qaytarildi!");
+      }
+    }
+
+    // 5. Arizalar
+    function loadLeads() {
+      const tbody = document.getElementById('leadsTableBody');
+      const leads = JSON.parse(localStorage.getItem('jony_leads') || '[]');
+
+      if (leads.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500">Hozircha yangi arizalar mavjud emas. Sayt orqali ariza qoldirib sinab ko'rishingiz mumkin.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = leads.map((lead, idx) => `
+        <tr class="hover:bg-gray-900/40 transition-colors">
+          <td class="py-3 px-4 font-bold text-gray-400">${idx + 1}</td>
+          <td class="py-3 px-4 font-semibold text-white">${escapeHtml(lead.name)}</td>
+          <td class="py-3 px-4 text-amber-400 font-mono">${escapeHtml(lead.phone)}</td>
+          <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-gray-800 text-xs">${escapeHtml(lead.services || "Umumiy")}</span></td>
+          <td class="py-3 px-4 text-gray-400 text-xs">${escapeHtml(lead.note || "—")}</td>
+          <td class="py-3 px-4 text-gray-500 text-xs">${escapeHtml(lead.time)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function clearLeads() {
+      if (confirm("Barcha arizalarni tozalashni xohlaysizmi?")) {
+        localStorage.removeItem('jony_leads');
+        loadLeads();
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('saveToast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3500);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAdminSession();
+    });
+  </script>
+</body>
+</html>

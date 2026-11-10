@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #06070B;
+  --bg-secondary: #0D0E15;
+  --surface-card: rgba(18, 18, 26, 0.75);
+  --surface-card-hover: rgba(28, 26, 36, 0.9);
+  
+  /* 1-Theme: Ruby & Gold (Default) */
+  --accent-primary: #E11D48;
+  --accent-primary-hover: #F43F5E;
+  --accent-primary-glow: rgba(225, 29, 72, 0.35);
+  --accent-secondary: #F59E0B;
+  --accent-secondary-light: #FDE68A;
+  --border-hover: rgba(225, 29, 72, 0.45);
+  --btn-gradient: linear-gradient(135deg, #9F1239 0%, #E11D48 50%, #BE123C 100%);
+  --btn-gradient-hover: linear-gradient(135deg, #BE123C 0%, #F43F5E 50%, #E11D48 100%);
+  --hero-glow-1: #BE123C;
+  --hero-glow-2: #F59E0B;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --text-main: #F9FAFB;
+  --text-muted: #9CA3AF;
+}
+
+/* 2-Theme: Emerald & Obsidian (Zumrad & Qora) */
+html.theme-emerald {
+  --accent-primary: #10B981;
+  --accent-primary-hover: #34D399;
+  --accent-primary-glow: rgba(16, 185, 129, 0.35);
+  --accent-secondary: #06B6D4;
+  --accent-secondary-light: #A7F3D0;
+  --border-hover: rgba(16, 185, 129, 0.45);
+  --btn-gradient: linear-gradient(135deg, #065F46 0%, #10B981 50%, #059669 100%);
+  --btn-gradient-hover: linear-gradient(135deg, #059669 0%, #34D399 50%, #10B981 100%);
+  --hero-glow-1: #10B981;
+  --hero-glow-2: #06B6D4;
+}
+
+/* 3-Theme: Electric Violet & Cyan (Binafsha & Moviy) */
+html.theme-violet-cyan {
+  --accent-primary: #6366F1;
+  --accent-primary-hover: #818CF8;
+  --accent-primary-glow: rgba(99, 102, 241, 0.35);
+  --accent-secondary: #06B6D4;
+  --accent-secondary-light: #C7D2FE;
+  --border-hover: rgba(99, 102, 241, 0.45);
+  --btn-gradient: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #7C3AED 100%);
+  --btn-gradient-hover: linear-gradient(135deg, #4F46E5 0%, #818CF8 50%, #6366F1 100%);
+  --hero-glow-1: #6366F1;
+  --hero-glow-2: #06B6D4;
+}
+
+/* 4-Theme: Midnight Gold & Champagne (Klassik Oltin) */
+html.theme-luxury-gold {
+  --accent-primary: #D97706;
+  --accent-primary-hover: #FBBF24;
+  --accent-primary-glow: rgba(245, 158, 11, 0.4);
+  --accent-secondary: #F59E0B;
+  --accent-secondary-light: #FEF3C7;
+  --border-hover: rgba(245, 158, 11, 0.5);
+  --btn-gradient: linear-gradient(135deg, #B45309 0%, #F59E0B 50%, #D97706 100%);
+  --btn-gradient-hover: linear-gradient(135deg, #D97706 0%, #FBBF24 50%, #F59E0B 100%);
+  --hero-glow-1: #D97706;
+  --hero-glow-2: #FBBF24;
+}
+
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  overflow-x: hidden;
+  selection-background-color: var(--accent-primary);
+  selection-color: #ffffff;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #06070B;
+}
+::-webkit-scrollbar-thumb {
+  background: #1F1F2E;
+  border-radius: 9999px;
+  border: 2px solid #06070B;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Luxury Glassmorphism */
+.glass-panel {
+  background: var(--surface-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-card-hover);
+  box-shadow: 0 12px 35px -10px var(--accent-primary-glow);
+}
+
+.glass-nav {
+  background: rgba(6, 7, 11, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Dynamic Gradient Texts */
+.dynamic-gradient-text {
+  background: linear-gradient(135deg, #FFFFFF 15%, var(--accent-secondary-light) 50%, var(--accent-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dynamic-accent-text {
+  color: var(--accent-secondary);
+}
+
+/* Dynamic Ambient Glow Orbs */
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  transition: all 0.5s ease;
+}
+
+.ambient-glow-1 {
+  background: radial-gradient(circle, var(--hero-glow-1) 0%, transparent 70%);
+}
+
+.ambient-glow-2 {
+  background: radial-gradient(circle, var(--hero-glow-2) 0%, transparent 70%);
+}
+
+/* Background Grids */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Dynamic Buttons */
+.btn-primary {
+  position: relative;
+  background: var(--btn-gradient);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.85rem 1.85rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 25px -2px var(--accent-primary-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 35px var(--accent-primary-glow);
+  background: var(--btn-gradient-hover);
+}
+
+.btn-gold {
+  position: relative;
+  background: linear-gradient(135deg, #B45309 0%, #F59E0B 50%, #D97706 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.85rem 1.85rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 25px -2px rgba(245, 158, 11, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 1px solid rgba(253, 230, 138, 0.3);
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 35px rgba(245, 158, 11, 0.7);
+  background: linear-gradient(135deg, #D97706 0%, #FBBF24 50%, #F59E0B 100%);
+}
+
+.btn-secondary {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  color: #F3F4F6;
+  font-weight: 500;
+  border-radius: 9999px;
+  padding: 0.85rem 1.75rem;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-hover);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+/* Floating Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out 1.5s infinite;
+}
+
+/* Service Chip Checked State */
+.service-chip input[type="checkbox"]:checked + label {
+  background: rgba(225, 29, 72, 0.18);
+  border-color: var(--accent-primary);
+  color: #FFFFFF;
+  box-shadow: 0 0 18px var(--accent-primary-glow);
+}
+
+/* Success Modal Styles */
+.modal-overlay {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-box {
+  transform: scale(0.92) translateY(20px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .modal-box {
+  transform: scale(1) translateY(0);
+}
